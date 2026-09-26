@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Corrida Canina Kärcher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,800;1,800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --yellow:#FFED00;
+    --black:#000000;
+    --anthracite:#2B2B2B;
+    --grey:#5C5C5C;
+    --light:#F2F2F2;
+    --white:#FFFFFF;
+    --error:#D0021B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{min-height:100%}
+  body{
+    font-family:'Barlow',system-ui,sans-serif;
+    background:var(--light);
+    color:var(--black);
+    font-size:18px;
+    min-height:100vh;
+    min-height:100dvh;
+    display:flex;flex-direction:column;
+  }
+
+  /* ---------- HEADER ---------- */
+  header{
+    background:var(--yellow);
+    padding:32px 20px 0;
+    text-align:left;
+  }
+  .kicker{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:600;font-size:16px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--anthracite);margin-bottom:8px;
+  }
+  h1{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:800;font-style:italic;
+    font-size:clamp(40px,11vw,72px);
+    line-height:.92;text-transform:uppercase;letter-spacing:-.01em;
+  }
+  .date-line{
+    margin-top:14px;font-weight:700;font-size:clamp(18px,4.8vw,24px);
+  }
+  .bar{height:14px;background:var(--black);margin:24px -20px 0}
+
+  /* ---------- FORM ---------- */
+  main{flex:1;width:100%;max-width:640px;margin:0 auto;padding:24px 16px 48px}
+  .field{
+    background:var(--white);
+    border-left:6px solid var(--yellow);
+    padding:20px 18px;margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(0,0,0,.08);
+  }
+  .field.invalid{border-left-color:var(--error)}
+  label.q, .q{
+    display:block;font-weight:700;font-size:19px;line-height:1.25;margin-bottom:12px;
+  }
+  .hint{font-size:14px;color:var(--grey);margin:-6px 0 12px}
+  input[type=text],input[type=email],input[type=tel]{
+    width:100%;font:inherit;font-size:20px;font-weight:500;
+    padding:16px 14px;border:2px solid var(--anthracite);border-radius:0;
+    background:var(--white);color:var(--black);outline:none;
+    -webkit-appearance:none;appearance:none;
+  }
+  input:focus{border-color:var(--black);box-shadow:0 0 0 4px var(--yellow)}
+  .err{color:var(--error);font-size:15px;font-weight:600;margin-top:8px;display:none}
+  .field.invalid .err{display:block}
+
+  .phone-wrap{display:flex}
+  .phone-prefix{
+    display:flex;align-items:center;padding:0 14px;
+    background:var(--black);color:var(--yellow);font-weight:700;font-size:20px;
+  }
+  .phone-wrap input{border-left:none}
+
+  /* Opciones Sí / No */
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .choice{
+    font:inherit;font-weight:700;font-size:20px;padding:18px 10px;cursor:pointer;
+    background:var(--white);color:var(--black);border:2px solid var(--anthracite);
+  }
+  .choice.selected{background:var(--black);color:var(--yellow);border-color:var(--black)}
+
+  /* Siluetas */
+  .dogs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:end}
+  .dog{
+    background:var(--white);border:2px solid #D6D6D6;cursor:pointer;
+    padding:14px 6px 12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+    min-height:170px;font:inherit;color:var(--black);
+  }
+  .dog svg{display:block;fill:var(--anthracite);transition:fill .15s}
+  .dog[data-size="Pequeña"] svg{width:42%}
+  .dog[data-size="Mediana"] svg{width:68%}
+  .dog[data-size="Grande"] svg{width:96%}
+  .dog span{margin-top:12px;font-weight:700;font-size:17px}
+  .dog.selected{background:var(--yellow);border-color:var(--black)}
+  .dog.selected svg{fill:var(--black)}
+
+  /* Resto oculto hasta validar edad */
+  #rest{display:none}
+  #rest.show{display:block;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .submit{
+    width:100%;margin-top:10px;padding:20px;border:none;cursor:pointer;
+    background:var(--black);color:var(--yellow);
+    font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;
+    text-transform:uppercase;letter-spacing:.06em;
+  }
+  .submit:disabled{opacity:.55;cursor:wait}
+
+  /* ---------- MODAL MENOR DE EDAD ---------- */
+  .modal{
+    position:fixed;inset:0;background:rgba(0,0,0,.75);
+    display:none;align-items:center;justify-content:center;padding:20px;z-index:50;
+  }
+  .modal.show{display:flex}
+  .modal-box{
+    background:var(--white);max-width:420px;width:100%;
+    border-top:12px solid var(--yellow);padding:28px 22px 22px;text-align:center;
+  }
+  .modal-box .icon{
+    width:64px;height:64px;margin:0 auto 16px;background:var(--black);color:var(--yellow);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;
+  }
+  .modal-box p{font-size:20px;font-weight:600;line-height:1.35;margin-bottom:22px}
+  .modal-box button{
+    width:100%;padding:16px;border:none;background:var(--black);color:var(--yellow);
+    font:inherit;font-weight:700;font-size:19px;cursor:pointer;
+  }
+
+  /* ---------- PANTALLA FINAL ---------- */
+  #done{
+    position:fixed;inset:0;background:var(--yellow);z-index:60;
+    display:none;flex-direction:column;justify-content:center;
+    padding:32px 22px;overflow-y:auto;
+  }
+  #done.show{display:flex}
+  #done .check{
+    width:72px;height:72px;background:var(--black);margin-bottom:26px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #done .reminder{
+    font-size:clamp(22px,6vw,32px);font-weight:700;line-height:1.28;margin-bottom:34px;
+  }
+  #done .reminder strong{background:var(--black);color:var(--yellow);padding:0 6px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+  #done .bar{margin:0 0 28px;height:12px}
+  #done h2{
+    font-family:'Barlow Condensed',sans-serif;font-weight:800;font-style:italic;
+    font-size:clamp(40px,11vw,72px);line-height:.92;text-transform:uppercase;
+  }
+  #done .when{margin-top:14px;font-weight:700;font-size:clamp(20px,5.2vw,28px)}
+
+  @media (min-width:700px){
+    header{padding:48px 40px 0}
+    .bar{margin:32px -40px 0}
+    #done{padding:48px max(40px,calc((100vw - 760px)/2))}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">Inscripción</div>
+  <h1>Primera Corrida Canina Karcher</h1>
+  <div class="date-line">Domingo 11 de octubre en CicloRecreoVía</div>
+  <div class="bar"></div>
+</header>
+
+<main>
+  <form id="form" novalidate autocomplete="on">
+
+    <!-- Fecha de nacimiento (filtro de edad) -->
+    <div class="field" id="f-nac">
+      <label class="q" for="nacimiento">Fecha de nacimiento</label>
+      <div class="hint">DD/MM/AAAA</div>
+      <input type="text" id="nacimiento" inputmode="numeric" placeholder="DD/MM/AAAA" maxlength="10" autocomplete="bday">
+      <div class="err">Ingresa una fecha válida (DD/MM/AAAA).</div>
+    </div>
+
+    <div id="rest">
+      <div class="field" id="f-nombre">
+        <label class="q" for="nombre">Nombre</label>
+        <input type="text" id="nombre" autocomplete="given-name">
+        <div class="err">Ingresa tu nombre.</div>
+      </div>
+
+      <div class="field" id="f-apellido">
+        <label class="q" for="apellido">Apellido</label>
+        <input type="text" id="apellido" autocomplete="family-name">
+        <div class="err">Ingresa tu apellido.</div>
+      </div>
+
+      <div class="field" id="f-celular">
+        <label class="q" for="celular">Celular</label>
+        <div class="phone-wrap">
+          <div class="phone-prefix">+56</div>
+          <input type="tel" id="celular" inputmode="numeric" placeholder="9 1234 5678" autocomplete="tel-national">
+        </div>
+        <div class="err">Ingresa un celular válido de 9 dígitos que comience con 9.</div>
+      </div>
+
+      <div class="field" id="f-correo">
+        <label class="q" for="correo">Correo electrónico</label>
+        <input type="email" id="correo" inputmode="email" autocomplete="email" placeholder="nombre@correo.cl">
+        <div class="err">Ingresa un correo válido.</div>
+      </div>
+
+      <div class="field" id="f-acepta">
+        <div class="q">¿Acepta compartir sus datos con Kärcher?</div>
+        <div class="choices" data-group="acepta">
+          <button type="button" class="choice" data-value="Sí">Sí</button>
+          <button type="button" class="choice" data-value="No">No</button>
+        </div>
+        <div class="err">Selecciona una opción.</div>
+      </div>
+
+      <div class="field" id="f-raza">
+        <div class="q">¿Tu amigo canino es de raza pequeña, mediana o grande?</div>
+        <div class="dogs">
+          <button type="button" class="dog" data-size="Pequeña" aria-label="Pequeña"><svg viewBox="0 0 100 72"><use href="#dog"/></svg><span>Pequeña</span></button>
+          <button type="button" class="dog" data-size="Mediana" aria-label="Mediana"><svg viewBox="0 0 100 72"><use href="#dog"/></svg><span>Mediana</span></button>
+          <button type="button" class="dog" data-size="Grande" aria-label="Grande"><svg viewBox="0 0 100 72"><use href="#dog"/></svg><span>Grande</span></button>
+        </div>
+        <div class="err">Selecciona el tamaño de tu perro.</div>
+      </div>
+
+      <button type="submit" class="submit" id="btnEnviar">Enviar</button>
+    </div>
+  </form>
+</main>
+
+<!-- Silueta de perro (se reutiliza en los 3 tamaños) -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <path id="dog" d="M21 30 C16 26 12 20 11 13 C10.5 10 13 9.5 14 12 C16 18 19 23 25 26 L64 26 C66 20 69 14 73 10 L75 3 L79 8 C82 8 85 9 87 12 L95 15 C98 16 98 20 95 21 L86 23 C84 24 82 26 80 29 L77 40 C76 44 74 46 73 48 L74 70 L67 70 L65 50 C63 50 61 50 59 50 L59 70 L53 70 L52 49 C45 49 39 49 34 48 L32 70 L26 70 L26 50 L24 70 L18 70 L19 46 C19 40 19 35 21 30 Z"/>
+  </defs>
+</svg>
+
+<!-- Modal menor de edad -->
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div class="icon">!</div>
+    <p>Lo sentimos, en esta actividad solo pueden inscribirse personas mayores de 18 años</p>
+    <button type="button" id="modalClose">Entendido</button>
+  </div>
+</div>
+
+<!-- Pantalla final -->
+<section id="done" aria-live="polite">
+  <div class="check">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FFED00" stroke-width="3.2" stroke-linecap="square"><path d="M4 12.5l5 5L20 6.5"/></svg>
+  </div>
+  <p class="reminder">Recuerda retirar tu kit en nuestro <strong>Kärcher Center</strong>, ubicado en <strong>Av. Irarrázaval 259</strong> el jueves 8 o el viernes 9 de octubre, de 10.00 a 17.30 hrs.</p>
+  <div class="bar"></div>
+  <h2>Primera Corrida Canina Karcher</h2>
+  <p class="when">Domingo 11 de octubre de 9.15 a 12.30 hrs.</p>
+</section>
+
+<script>
+  // URL de la implementación de Apps Script (Web App)
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbmfCrgPe0BZazrDG-LDgkLbkicg61gavlAlkAH3QO9ijzP8gGy-o6LUGsS3ONq1dCNg/exec';
+
+  const $ = id => document.getElementById(id);
+  const nac = $('nacimiento'), rest = $('rest'), modal = $('modal');
+  let fechaISO = '', acepta = '', raza = '';
+
+  /* ---------- Fecha: máscara DD/MM/AAAA ---------- */
+  nac.addEventListener('input', () => {
+    let d = nac.value.replace(/\D/g,'').slice(0,8);
+    if (d.length > 4) d = d.slice(0,2)+'/'+d.slice(2,4)+'/'+d.slice(4);
+    else if (d.length > 2) d = d.slice(0,2)+'/'+d.slice(2);
+    nac.value = d;
+    checkEdad();
+  });
+
+  function parseFecha(s){
+    const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!m) return null;
+    const dd=+m[1], mm=+m[2], yy=+m[3];
+    const dt = new Date(yy, mm-1, dd);
+    if (dt.getFullYear()!==yy || dt.getMonth()!==mm-1 || dt.getDate()!==dd) return null;
+    const hoy = new Date();
+    if (dt > hoy || yy < 1900) return null;
+    return {dt, dd, mm, yy};
+  }
+
+  function edad(dt){
+    const h = new Date();
+    let e = h.getFullYear() - dt.getFullYear();
+    const m = h.getMonth() - dt.getMonth();
+    if (m < 0 || (m === 0 && h.getDate() < dt.getDate())) e--;
+    return e;
+  }
+
+  function checkEdad(){
+    const f = $('f-nac');
+    fechaISO = '';
+    rest.classList.remove('show');
+    if (nac.value.length < 10){ f.classList.remove('invalid'); return; }
+    const p = parseFecha(nac.value);
+    if (!p){ f.classList.add('invalid'); return; }
+    f.classList.remove('invalid');
+    if (edad(p.dt) < 18){
+      modal.classList.add('show');
+      nac.blur();
+      return;
+    }
+    fechaISO = nac.value;
+    rest.classList.add('show');
+  }
+
+  $('modalClose').addEventListener('click', () => {
+    modal.classList.remove('show');
+    nac.value = '';
+    nac.focus();
+  });
+
+  /* ---------- Sí / No ---------- */
+  document.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.choice').forEach(x => x.classList.remove('selected'));
+    b.classList.add('selected');
+    acepta = b.dataset.value;
+    $('f-acepta').classList.remove('invalid');
+  }));
+
+  /* ---------- Siluetas ---------- */
+  document.querySelectorAll('.dog').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.dog').forEach(x => x.classList.remove('selected'));
+    b.classList.add('selected');
+    raza = b.dataset.size;
+    $('f-raza').classList.remove('invalid');
+  }));
+
+  /* ---------- Celular chileno ---------- */
+  function normCel(v){
+    let d = v.replace(/\D/g,'');
+    if (d.startsWith('56')) d = d.slice(2);
+    return /^9\d{8}$/.test(d) ? '+56'+d : null;
+  }
+
+  // Limpia error al escribir
+  ['nombre','apellido','celular','correo'].forEach(id =>
+    $(id).addEventListener('input', () => $('f-'+id).classList.remove('invalid')));
+
+  /* ---------- Envío ---------- */
+  $('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!fechaISO) return;
+
+    const nombre = $('nombre').value.trim();
+    const apellido = $('apellido').value.trim();
+    const celular = normCel($('celular').value);
+    const correo = $('correo').value.trim().toLowerCase();
+
+    const checks = [
+      ['f-nombre', nombre.length > 0],
+      ['f-apellido', apellido.length > 0],
+      ['f-celular', !!celular],
+      ['f-correo', /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)],
+      ['f-acepta', !!acepta],
+      ['f-raza', !!raza],
+    ];
+    let first = null;
+    checks.forEach(([id, ok]) => {
+      $(id).classList.toggle('invalid', !ok);
+      if (!ok && !first) first = $(id);
+    });
+    if (first){ first.scrollIntoView({behavior:'smooth', block:'center'}); return; }
+
+    const btn = $('btnEnviar');
+    btn.disabled = true; btn.textContent = 'Enviando…';
+
+    const data = { nombre, apellido, celular, correo, nacimiento: fechaISO, acepta, raza };
+
+    try{
+      await fetch(SCRIPT_URL, {
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify(data)
+      });
+      $('done').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }catch(err){
+      btn.disabled = false; btn.textContent = 'Enviar';
+      alert('No pudimos enviar tu inscripción. Revisa tu conexión e inténtalo nuevamente.');
+    }
+  });
+</script>
+</body>
+</html>
