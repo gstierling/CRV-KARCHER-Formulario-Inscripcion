@@ -299,13 +299,15 @@
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbmfCrgPe0BZazrDG-LDgkLbkicg61gavlAlkAH3QO9ijzP8gGy-o6LUGsS3ONq1dCNg/exec';
 
   const $ = id => document.getElementById(id);
+  // Clave del enlace especial (viene en la URL: ?k=...)
+  const CLAVE = new URLSearchParams(location.search).get('k') || '';
 
   /* ---------- Cupos (límite 210) ---------- */
   function mostrarCerrado(){
     $('closed').classList.add('show');
     document.body.style.overflow = 'hidden';
   }
-  fetch(SCRIPT_URL + '?accion=cupos')
+  fetch(SCRIPT_URL + '?accion=cupos&k=' + encodeURIComponent(CLAVE))
     .then(r => r.json())
     .then(c => { if (c && c.disponibles <= 0) mostrarCerrado(); })
     .catch(() => {}); // si falla la consulta, el servidor igual controla el límite al enviar
@@ -418,7 +420,7 @@
     const btn = $('btnEnviar');
     btn.disabled = true; btn.textContent = 'Enviando…';
 
-    const data = { nombre, apellido, celular, correo, nacimiento: fechaISO, acepta, raza };
+    const data = { nombre, apellido, celular, correo, nacimiento: fechaISO, acepta, raza, k: CLAVE };
 
     try{
       const r = await fetch(SCRIPT_URL, {
